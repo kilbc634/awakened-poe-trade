@@ -77,6 +77,7 @@ const parsers: Array<ParserFn | { virtual: VirtualParserFn }> = [
   parseMercenaryGems,
   parseMercenaryGems,
   parseMercenaryGems,
+  parseViscera,
   parseModifiers, // enchant
   parseModifiers, // scourge
   parseModifiers, // implicit
@@ -193,6 +194,9 @@ function findInDatabase (item: ParserState) {
     info = ITEM_BY_TRANSLATED('UNIQUE', item.name)
   } else {
     info = ITEM_BY_TRANSLATED('ITEM', item.baseType ?? item.name)
+    if (!info?.length && !item.baseType) {
+      info = findVisceraByTieredName(item)
+    }
   }
   if (!info?.length) {
     return err('item.unknown')
@@ -216,6 +220,23 @@ function findInDatabase (item: ParserState) {
         item.info.unique.base)![0].craftable!.category
     }
   }
+  if (item.category === ItemCategory.Viscera) {
+    // item text has no "Rarity:" line
+    item.rarity ??= ItemRarity.Normal
+  }
+}
+
+// "Lesser Calcified Leg" / "Greater Calcified Leg" are tiers of
+// the "Calcified Leg" base type, only the latter exists on trade site.
+function findVisceraByTieredName (item: ParserState): BaseType[] | undefined {
+  const match = _$.VISCERA_TIER.exec(item.name)
+  if (!match) return undefined
+
+  const info = ITEM_BY_TRANSLATED('ITEM', match[1])
+  if (info?.[0].craftable?.category !== ItemCategory.Viscera) return undefined
+
+  item.name = match[1]
+  return info
 }
 
 export function makeIdentifiedUnique (uniqueInfo: BaseType, unidentified: ParsedItem): ParsedItem {
@@ -789,6 +810,35 @@ function parseMercenaryGems (section: string[], item: ParsedItem) {
     item.mercenarySkills = []
   }
   item.mercenarySkills.push(group)
+
+  return 'SECTION_PARSED'
+}
+
+function parseViscera (section: string[], item: ParsedItem) {
+  if (item.category !== ItemCategory.Viscera) return 'PARSER_SKIPPED'
+
+  // Text copied in game has `{ Implicit Modifier }` line, `parseModifiers`
+  // handles it. Other sections (flavour text) must not be taken for stats.
+  if (item.rawText.split(/\r?\n/).some(isModInfoLine)) return 'PARSER_SKIPPED'
+
+  // Text from trade site: stats are printed as-is, without `(implicit)` suffix.
+  // Sections of item: body slot, level requirement (not always),
+  // item level (already parsed), stats, flavour text (not always), help text.
+  if (
+    (section.length === 1 && _$.VISCERA_SLOTS.includes(section[0])) ||
+    section[0] === _$.VISCERA_REQUIREMENTS ||
+    section[0] === _$.VISCERA_HELP
+  ) {
+    return 'SECTION_SKIPPED'
+  }
+
+  const lines = section.map(line => line.endsWith(IMPLICIT_LINE)
+    ? line.slice(0, -IMPLICIT_LINE.length)
+    : line)
+  parseStatsFromMod(lines, item, {
+    info: { type: ModifierType.Implicit, tags: [] },
+    stats: []
+  })
 
   return 'SECTION_PARSED'
 }

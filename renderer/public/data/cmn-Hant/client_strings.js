@@ -131,6 +131,10 @@ export default {
   CHART_SULPHUR: '亡者硫酸: ',
   MERCENARY_LEVEL: '傭兵等級: ',
   MERCENARY_BUILD: '流派: ',
+  VISCERA_TIER: /^(?:Lesser|Greater) (.*)$/,
+  VISCERA_SLOTS: ['Head', 'Torso', 'Upper Limb', 'Lower Limb'],
+  VISCERA_HELP: 'Take this to the Wickerman in a town or hideout to attach it.',
+  VISCERA_REQUIREMENTS: 'Requirements:',
   // ---
   CHAT_SYSTEM: /^: (?<body>.+)$/,
   CHAT_TRADE: /^\$(?:<(?<guild_tag>.+?)> )?(?<char_name>.+?): (?<body>.+)$/,

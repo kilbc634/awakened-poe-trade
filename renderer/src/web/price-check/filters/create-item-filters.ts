@@ -87,6 +87,26 @@ export function createFilters (
     }
     return filters
   }
+  if (item.category === ItemCategory.Viscera) {
+    // All tiers (Lesser, Greater) share one base type on trade site,
+    // tier is narrowed down by the stat it grants. Flags of equipment
+    // (corrupted, mirrored, rarity, etc.) are not applicable.
+    filters.searchExact = {
+      baseType: item.info.name,
+      baseTypeTrade: t(opts, item.info)
+    }
+    filters.searchRelaxed = {
+      category: item.category,
+      disabled: true
+    }
+    if (item.itemLevel) {
+      filters.itemLevel = {
+        value: item.itemLevel,
+        disabled: true
+      }
+    }
+    return filters
+  }
   if (item.info.refName === 'Scrying Orb') {
     filters.searchExact = {
       baseType: item.info.name,

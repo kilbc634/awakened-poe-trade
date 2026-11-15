@@ -131,6 +131,10 @@ export default {
   CHART_SULPHUR: "Dead Man's Sulphur: ",
   MERCENARY_LEVEL: 'Mercenary Level: ',
   MERCENARY_BUILD: 'Build: ',
+  VISCERA_TIER: /^(?:Lesser|Greater) (.*)$/,
+  VISCERA_SLOTS: ['Head', 'Torso', 'Upper Limb', 'Lower Limb'],
+  VISCERA_HELP: 'Take this to the Wickerman in a town or hideout to attach it.',
+  VISCERA_REQUIREMENTS: 'Requirements:',
   // ---
   CHAT_SYSTEM: /^: (?<body>.+)$/,
   CHAT_TRADE: /^\$(?:<(?<guild_tag>.+?)> )?(?<char_name>.+?): (?<body>.+)$/,
